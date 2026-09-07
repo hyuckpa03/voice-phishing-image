@@ -32,8 +32,19 @@ class PhishingAnalysisResult(BaseModel):
         description="고정 면책 조항"
     )
 
-def analyze_phishing_image(image_path: str) -> dict:
-    img = Image.open(image_path)
+# image_source로 이름 변경 및 Union[str, bytes] 타입 지정
+def analyze_phishing_image(image_source: Union[str, bytes]) -> dict:
+    
+    # 1. 입력값에 따라 유연하게 이미지 객체 생성
+    if isinstance(image_source, str):
+        # 로컬 테스트용: 파일 경로가 들어온 경우
+        img = Image.open(image_source)
+    elif isinstance(image_source, bytes):
+        # 백엔드 서버용: 프론트에서 날아온 바이트 데이터가 들어온 경우
+        img = Image.open(BytesIO(image_source))
+    else:
+        raise ValueError("image_source는 파일 경로(str) 또는 바이트 데이터(bytes)여야 합니다.")
+
     system_prompt = """
     너는 고령층 대상 보이스피싱 및 스미싱 판정 전문가야.
     사용자가 업로드한 문자 메시지나 메신저(카카오톡 등) 대화 캡처 이미지를 정밀 분석해줘.
